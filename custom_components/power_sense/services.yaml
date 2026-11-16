@@ -1,0 +1,16 @@
+import_history:
+  fields:
+    device:
+      required: false
+      example: "Living room lamps"
+      selector:
+        text:
+    days:
+      required: false
+      default: 30
+      selector:
+        number:
+          min: 1
+          max: 730
+          mode: box
+          unit_of_measurement: days

@@ -1,0 +1,136 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Electricity price",
+        "description": "Power Sense calculates energy use and cost per device. Enter your electricity price; you add devices afterwards.",
+        "data": {
+          "price": "Price per kWh"
+        },
+        "data_description": {
+          "price": "Your electricity price in your currency per kilowatt hour."
+        }
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Power Sense is already set up."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Electricity price",
+        "data": {
+          "price": "Price per kWh"
+        },
+        "data_description": {
+          "price": "Your electricity price in your currency per kilowatt hour."
+        }
+      }
+    }
+  },
+  "config_subentries": {
+    "device": {
+      "entry_type": "Device",
+      "initiate_flow": {
+        "user": "Add device",
+        "reconfigure": "Change device"
+      },
+      "step": {
+        "user": {
+          "title": "Device",
+          "description": "Pick power sensors (measured), entities to estimate, or both. Their consumption is added up.",
+          "data": {
+            "name": "Name",
+            "power_sensors": "Power sensors",
+            "entities": "Entities to estimate"
+          },
+          "data_description": {
+            "name": "Shown as the device name, e.g. 'Washing machine' or 'Lamps'.",
+            "power_sensors": "Sensors that report power in W or kW, e.g. a smart plug. Several sensors are added up.",
+            "entities": "Lights, switches or fans without a power meter. Their power is estimated from watts while they are on."
+          }
+        },
+        "reconfigure": {
+          "title": "Device",
+          "description": "Pick power sensors (measured), entities to estimate, or both. Their consumption is added up.",
+          "data": {
+            "name": "Name",
+            "power_sensors": "Power sensors",
+            "entities": "Entities to estimate"
+          },
+          "data_description": {
+            "name": "Shown as the device name, e.g. 'Washing machine' or 'Lamps'.",
+            "power_sensors": "Sensors that report power in W or kW, e.g. a smart plug. Several sensors are added up.",
+            "entities": "Lights, switches or fans without a power meter. Their power is estimated from watts while they are on."
+          }
+        },
+        "estimate": {
+          "title": "Estimate",
+          "description": "Power Sense assumes this wattage while an entity is on.",
+          "data": {
+            "default_watts": "Default watts",
+            "scale_brightness": "Scale with brightness",
+            "watts": "Watts per entity (optional)"
+          },
+          "data_description": {
+            "default_watts": "Used for every entity without its own value below.",
+            "scale_brightness": "Dimmed lights count proportionally (at least 10 %).",
+            "watts": "Own wattage per entity, e.g. light.desk: 9"
+          }
+        }
+      },
+      "error": {
+        "no_source": "Select at least one power sensor or one entity.",
+        "invalid_watts": "Use 'entity_id: watts' for entities you selected, watts must be 0 or more."
+      },
+      "abort": {
+        "reconfigure_successful": "Device updated."
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "power": {
+        "name": "Power"
+      },
+      "energy": {
+        "name": "Energy"
+      },
+      "energy_day": {
+        "name": "Energy today"
+      },
+      "energy_month": {
+        "name": "Energy this month"
+      },
+      "energy_year": {
+        "name": "Energy this year"
+      },
+      "cost_day": {
+        "name": "Cost today"
+      },
+      "cost_month": {
+        "name": "Cost this month"
+      },
+      "cost_year": {
+        "name": "Cost this year"
+      }
+    }
+  },
+  "services": {
+    "import_history": {
+      "name": "Import history",
+      "description": "Rebuild the consumption history of a device from the recorder (measured: statistics, estimated: state history). Run once after adding a device; running it again replaces the earlier import.",
+      "fields": {
+        "device": {
+          "name": "Device",
+          "description": "Name of the device. Leave empty for all devices."
+        },
+        "days": {
+          "name": "Days",
+          "description": "How many days back to import."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "domain": "power_sense",
+  "name": "Power Sense",
+  "after_dependencies": ["recorder"],
+  "codeowners": ["@dermitchi"],
+  "config_flow": true,
+  "documentation": "https://github.com/dermitchi/ha-power-sense",
+  "integration_type": "service",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/dermitchi/ha-power-sense/issues",
+  "requirements": [],
+  "single_config_entry": true,
+  "version": "0.1.0"
+}

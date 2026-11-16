@@ -1,0 +1,136 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Strompreis",
+        "description": "Power Sense berechnet Verbrauch und Kosten pro Gerät. Gib deinen Strompreis ein, die Geräte fügst du danach hinzu.",
+        "data": {
+          "price": "Preis pro kWh"
+        },
+        "data_description": {
+          "price": "Dein Strompreis in deiner Währung pro Kilowattstunde."
+        }
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Power Sense ist schon eingerichtet."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Strompreis",
+        "data": {
+          "price": "Preis pro kWh"
+        },
+        "data_description": {
+          "price": "Dein Strompreis in deiner Währung pro Kilowattstunde."
+        }
+      }
+    }
+  },
+  "config_subentries": {
+    "device": {
+      "entry_type": "Gerät",
+      "initiate_flow": {
+        "user": "Gerät hinzufügen",
+        "reconfigure": "Gerät ändern"
+      },
+      "step": {
+        "user": {
+          "title": "Gerät",
+          "description": "Wähle Leistungssensoren (gemessen), Entitäten zum Schätzen oder beides. Der Verbrauch wird zusammengezählt.",
+          "data": {
+            "name": "Name",
+            "power_sensors": "Leistungssensoren",
+            "entities": "Entitäten zum Schätzen"
+          },
+          "data_description": {
+            "name": "Wird als Gerätename angezeigt, z. B. „Waschmaschine“ oder „Lampen“.",
+            "power_sensors": "Sensoren, die die Leistung in W oder kW melden, z. B. eine smarte Steckdose. Mehrere werden addiert.",
+            "entities": "Lampen, Schalter oder Ventilatoren ohne Messung. Ihre Leistung wird aus Watt geschätzt, solange sie an sind."
+          }
+        },
+        "reconfigure": {
+          "title": "Gerät",
+          "description": "Wähle Leistungssensoren (gemessen), Entitäten zum Schätzen oder beides. Der Verbrauch wird zusammengezählt.",
+          "data": {
+            "name": "Name",
+            "power_sensors": "Leistungssensoren",
+            "entities": "Entitäten zum Schätzen"
+          },
+          "data_description": {
+            "name": "Wird als Gerätename angezeigt, z. B. „Waschmaschine“ oder „Lampen“.",
+            "power_sensors": "Sensoren, die die Leistung in W oder kW melden, z. B. eine smarte Steckdose. Mehrere werden addiert.",
+            "entities": "Lampen, Schalter oder Ventilatoren ohne Messung. Ihre Leistung wird aus Watt geschätzt, solange sie an sind."
+          }
+        },
+        "estimate": {
+          "title": "Schätzung",
+          "description": "Power Sense nimmt diese Leistung an, solange eine Entität an ist.",
+          "data": {
+            "default_watts": "Standard-Watt",
+            "scale_brightness": "Mit Helligkeit skalieren",
+            "watts": "Watt pro Entität (optional)"
+          },
+          "data_description": {
+            "default_watts": "Gilt für jede Entität ohne eigenen Wert unten.",
+            "scale_brightness": "Gedimmte Lampen zählen anteilig (mindestens 10 %).",
+            "watts": "Eigene Leistung je Entität, z. B. light.schreibtisch: 9"
+          }
+        }
+      },
+      "error": {
+        "no_source": "Wähle mindestens einen Leistungssensor oder eine Entität.",
+        "invalid_watts": "Nutze „entity_id: Watt“ für gewählte Entitäten, Watt muss 0 oder mehr sein."
+      },
+      "abort": {
+        "reconfigure_successful": "Gerät aktualisiert."
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "power": {
+        "name": "Leistung"
+      },
+      "energy": {
+        "name": "Energie"
+      },
+      "energy_day": {
+        "name": "Energie heute"
+      },
+      "energy_month": {
+        "name": "Energie diesen Monat"
+      },
+      "energy_year": {
+        "name": "Energie dieses Jahr"
+      },
+      "cost_day": {
+        "name": "Kosten heute"
+      },
+      "cost_month": {
+        "name": "Kosten diesen Monat"
+      },
+      "cost_year": {
+        "name": "Kosten dieses Jahr"
+      }
+    }
+  },
+  "services": {
+    "import_history": {
+      "name": "Verlauf importieren",
+      "description": "Baut den Verbrauchsverlauf eines Geräts aus dem Recorder neu auf (gemessen: Statistik, geschätzt: Zustandsverlauf). Einmal nach dem Hinzufügen ausführen; ein weiterer Lauf ersetzt den früheren Import.",
+      "fields": {
+        "device": {
+          "name": "Gerät",
+          "description": "Name des Geräts. Leer lassen für alle Geräte."
+        },
+        "days": {
+          "name": "Tage",
+          "description": "Wie viele Tage zurück importiert werden."
+        }
+      }
+    }
+  }
+}
