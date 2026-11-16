@@ -14,3 +14,16 @@ import_history:
           max: 730
           mode: box
           unit_of_measurement: days
+    since:
+      required: false
+      selector:
+        date:
+    fill_watts:
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 100000
+          step: 0.1
+          mode: box
+          unit_of_measurement: W

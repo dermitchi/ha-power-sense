@@ -79,6 +79,7 @@ data:
 - *Measured* sensors are imported from the **long-term statistics** (hourly mean power), so this reaches back as far as your statistics do – it needs the sensor to have a `state_class` (all normal power sensors do).
 - *Estimated* entities are imported from the **recorder state history**, which Home Assistant keeps for 10 days by default (`purge_keep_days`).
 - Running it again replaces the previous import, it does not add up.
+- `since: 2026-11-01` starts at a date instead of going back a number of days. `fill_watts: 39` assumes that constant power for every hour **without** recorded data – for a device that ran all the time before its meter was installed (the fill is an estimate; repeat the same `fill_watts` whenever you re-import).
 
 ## Dashboard example
 

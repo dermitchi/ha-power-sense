@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import time
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry, ConfigSubentry
@@ -151,8 +151,14 @@ class Manager:
 
     # ---- history import -------------------------------------------------
 
-    async def async_import_history(self, name: str | None, days: int) -> dict[str, float]:
-        """Rebuild the history of one or all devices from the recorder. Returns kWh imported per device."""
+    async def async_import_history(
+        self, name: str | None, days: int, since: date | None = None, fill_watts: float | None = None
+    ) -> dict[str, float]:
+        """Rebuild the history of one or all devices from the recorder. Returns kWh imported per device.
+
+        *since* (a date) replaces *days*. *fill_watts* assumes that constant power for every hour in the window
+        without any recorded data, for devices that ran all the time before their meter was installed.
+        """
         from homeassistant.components.recorder import get_instance
         from homeassistant.components.recorder.history import get_significant_states
         from homeassistant.components.recorder.models import StatisticMeanType
@@ -174,6 +180,9 @@ class Manager:
             live_since = tracker.meter.live_since or now
             end = live_since - live_since % 3600  # history ends where the live measurement begins
             start = end - days * 86400
+            if since:
+                start = dt_util.start_of_local_day(since).timestamp()
+                start -= start % 3600
             start_dt, end_dt = dt_util.utc_from_timestamp(start), dt_util.utc_from_timestamp(end)
             series = []
 
@@ -201,6 +210,11 @@ class Manager:
                 series.append(hourly_energy(power_timeline(events, power_of), start, end))
 
             hourly_total = {t: v for t, v in merge_hourly(*series).items() if start <= t < end}
+            if fill_watts:
+                hour = start - start % 3600
+                while hour < end:
+                    hourly_total.setdefault(hour, fill_watts / 1000)
+                    hour += 3600
             delta = tracker.meter.apply_history(hourly_total, now, tz)
 
             entity_id = registry.async_get_entity_id("sensor", DOMAIN, f"{tracker.subentry.subentry_id}_energy")
@@ -231,11 +245,13 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         entries = hass.config_entries.async_loaded_entries(DOMAIN)
         if not entries:
             return
-        await entries[0].runtime_data.async_import_history(call.data.get("device"), call.data["days"])
+        await entries[0].runtime_data.async_import_history(
+            call.data.get("device"), call.data["days"], call.data.get("since"), call.data.get("fill_watts"))
 
     hass.services.async_register(
         DOMAIN, SERVICE_IMPORT, import_history,
-        schema=vol.Schema({vol.Optional("device"): cv.string, vol.Optional("days", default=30): vol.All(vol.Coerce(int), vol.Range(min=1, max=730))}))
+        schema=vol.Schema({vol.Optional("device"): cv.string, vol.Optional("days", default=30): vol.All(vol.Coerce(int), vol.Range(min=1, max=730)),
+         vol.Optional("since"): cv.date, vol.Optional("fill_watts"): vol.All(vol.Coerce(float), vol.Range(min=0, max=100000))}))
     return True
 
 

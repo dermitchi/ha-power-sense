@@ -150,6 +150,14 @@
         "days": {
           "name": "Tage",
           "description": "Wie viele Tage zurück importiert werden."
+        },
+        "since": {
+          "name": "Ab Datum",
+          "description": "Beginnt den Import an diesem Datum statt mit einer Anzahl Tage."
+        },
+        "fill_watts": {
+          "name": "Füll-Watt",
+          "description": "Nimmt diese gleichbleibende Leistung für jede Stunde ohne Messwert an, z. B. für ein Gerät, das schon vor dem Einbau des Zählers durchgehend lief."
         }
       }
     }

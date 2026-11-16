@@ -64,3 +64,21 @@ async def test_import_estimated_history_from_states(recorder_mock, enable_custom
     await hass.services.async_call(DOMAIN, "import_history", {"days": 1}, blocking=True)
     await async_wait_recording_done(hass)
     assert round(float(hass.states.get(entity(hass, "s1_energy")).state), 3) == 0.02  # 10 W for 2 h
+
+
+async def test_fill_watts_covers_hours_without_data(recorder_mock, enable_custom_integrations, hass: HomeAssistant) -> None:
+    base = hour_floor() - timedelta(hours=6)
+    async_import_statistics(
+        hass,
+        {"mean_type": StatisticMeanType.ARITHMETIC, "has_sum": False, "name": None, "source": "recorder", "statistic_id": "sensor.p",
+         "unit_class": "power", "unit_of_measurement": "W"},
+        [{"start": base + timedelta(hours=5), "mean": 1000.0, "min": 1000.0, "max": 1000.0}],  # only the last hour has data
+    )
+    await async_wait_recording_done(hass)
+    hass.states.async_set("sensor.p", "0", {"unit_of_measurement": "W"})
+    await setup_entry(hass, [sub("P", {"power_sensors": ["sensor.p"]})])
+    start_day = (dt_util.now() - timedelta(days=1)).date()
+    await hass.services.async_call(DOMAIN, "import_history", {"device": "P", "since": start_day.isoformat(), "fill_watts": 100}, blocking=True)
+    hours = (hour_floor().timestamp() - dt_util.start_of_local_day(start_day).timestamp()) / 3600
+    # every hour since the start of yesterday is filled with 0.1 kWh, the one measured hour has 1 kWh instead
+    assert abs(float(hass.states.get(entity(hass, "s1_energy")).state) - (0.1 * (hours - 1) + 1.0)) < 0.01

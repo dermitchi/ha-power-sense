@@ -150,6 +150,14 @@
         "days": {
           "name": "Days",
           "description": "How many days back to import."
+        },
+        "since": {
+          "name": "Since",
+          "description": "Start the import at this date instead of going back a number of days."
+        },
+        "fill_watts": {
+          "name": "Fill watts",
+          "description": "Assume this constant power for every hour without recorded data, e.g. for a device that ran all the time before its meter was installed."
         }
       }
     }
