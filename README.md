@@ -31,19 +31,22 @@ Copy `custom_components/power_sense` into your Home Assistant `config/custom_com
 | --- | --- |
 | Name | Name of the device, e.g. `Washing machine` |
 | Power sensors | Sensors with device class *power* (W or kW). Several are added up. |
-| Entities to estimate | Lights, switches, fans or input booleans without a meter. |
+| Entities to estimate | Lights, switches, fans, input booleans, media players (TVs, streaming boxes) or cameras without a meter. |
 
 If you selected entities, the next step asks for:
 
 | Field | Meaning |
 | --- | --- |
 | Default watts | Power assumed per entity while it is on. |
+| Standby watts | Power assumed while a device is off or in standby (default 0). Useful for TVs, streaming boxes and other always-plugged devices. |
 | Scale with brightness | Dimmed lights count proportionally, but at least 10 %. |
-| Watts per entity | Optional, own wattage per entity, as YAML: `light.desk: 9` |
+| Watts per entity | Optional, own wattage per entity, as YAML: `light.desk: 9`. For a device with standby use `media_player.tv: {on: 80, standby: 0.5}`. |
 
 **Many plugs at once:** use *Add several measured devices*, tick all power sensors you want and every one becomes its own device (named after the device it belongs to; sensors already in use are skipped).
 
 You can change everything later with *⋮ → Reconfigure* on the device, and the price under *Configure* of the integration.
+
+**How states are counted:** `on`, `playing`, `paused`, `buffering`, `recording`, `streaming` count as *on*; `off`, `standby`, `idle` count as *standby*; `unavailable`/`unknown` count as 0 W. A device that is always on, like a mains-powered camera, can be set to `{on: 9, standby: 9}`.
 
 **Typical wattages** (full brightness): LED bulb 5–10 W, LED spot 5–6 W, Hue Play 7 W, LED strip 10–25 W. The manufacturer's data sheet is the best source. Estimates are rough (±30 %) – the sensors are named like measured ones, so keep that in mind.
 

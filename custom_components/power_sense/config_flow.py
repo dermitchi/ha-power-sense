@@ -28,6 +28,7 @@ from .const import (
     CONF_POWER_SENSORS,
     CONF_PRICE,
     CONF_SCALE_BRIGHTNESS,
+    CONF_STANDBY_WATTS,
     CONF_WATTS,
     DEFAULT_PRICE,
     DEFAULT_WATTS,
@@ -36,6 +37,13 @@ from .const import (
     SUBENTRY_BULK,
     SUBENTRY_DEVICE,
 )
+
+
+def _valid_watts(value: Any) -> bool:
+    """A wattage is a number, or {on: W, standby: W} for devices with a standby draw."""
+    if isinstance(value, dict):
+        return bool(value) and set(value) <= {"on", "standby"} and all(_valid_watts(v) for v in value.values())
+    return isinstance(value, int | float) and not isinstance(value, bool) and value >= 0
 
 
 def _price_schema(default: float) -> vol.Schema:
@@ -111,14 +119,15 @@ class DeviceSubentryFlow(ConfigSubentryFlow):
         errors: dict[str, str] = {}
         if user_input is not None:
             watts = user_input.get(CONF_WATTS) or {}
-            if not isinstance(watts, dict) or any(k not in self._data[CONF_ENTITIES] or not isinstance(v, int | float) or v < 0
-                                                  for k, v in watts.items()):
+            if not isinstance(watts, dict) or any(k not in self._data[CONF_ENTITIES] or not _valid_watts(v) for k, v in watts.items()):
                 errors[CONF_WATTS] = "invalid_watts"
             else:
                 self._data.update(user_input)
                 return self._finish()
         schema = vol.Schema({
             vol.Required(CONF_DEFAULT_WATTS, default=DEFAULT_WATTS): selector.NumberSelector(
+                selector.NumberSelectorConfig(min=0, max=5000, step=0.1, unit_of_measurement="W", mode=selector.NumberSelectorMode.BOX)),
+            vol.Required(CONF_STANDBY_WATTS, default=0): selector.NumberSelector(
                 selector.NumberSelectorConfig(min=0, max=5000, step=0.1, unit_of_measurement="W", mode=selector.NumberSelectorMode.BOX)),
             vol.Required(CONF_SCALE_BRIGHTNESS, default=True): selector.BooleanSelector(),
             vol.Optional(CONF_WATTS): selector.ObjectSelector(),
@@ -130,7 +139,7 @@ class DeviceSubentryFlow(ConfigSubentryFlow):
     def _finish(self) -> SubentryFlowResult:
         data = {k: v for k, v in self._data.items() if k != CONF_NAME and v not in (None, [], {})}
         if not data.get(CONF_ENTITIES):  # entity-only settings make no sense without entities
-            for key in (CONF_DEFAULT_WATTS, CONF_SCALE_BRIGHTNESS, CONF_WATTS):
+            for key in (CONF_DEFAULT_WATTS, CONF_STANDBY_WATTS, CONF_SCALE_BRIGHTNESS, CONF_WATTS):
                 data.pop(key, None)
         title = self._data[CONF_NAME]
         if self.source == SOURCE_RECONFIGURE:

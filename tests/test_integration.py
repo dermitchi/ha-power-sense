@@ -137,3 +137,15 @@ async def test_bulk_add_creates_one_device_per_sensor_and_skips_used(hass: HomeA
     again = await hass.config_entries.subentries.async_init((entry.entry_id, "bulk"), context={"source": "user"})
     again = await hass.config_entries.subentries.async_configure(again["flow_id"], {"power_sensors": ["sensor.a_power", "sensor.b_power"]})
     assert again["reason"] == "nothing_new"
+
+
+async def test_media_players_use_on_and_standby_watts(hass: HomeAssistant) -> None:
+    hass.states.async_set("media_player.tv", "playing")
+    hass.states.async_set("media_player.box", "off")
+    hass.states.async_set("media_player.gone", "unavailable")
+    hass.states.async_set("camera.garden", "idle")
+    data = {"entities": ["media_player.tv", "media_player.box", "media_player.gone", "camera.garden"], "default_watts": 10,
+            "standby_watts": 2, "scale_brightness": True,
+            "watts": {"media_player.tv": {"on": 80, "standby": 0.5}, "camera.garden": {"on": 9, "standby": 9}}}
+    await setup_entry(hass, [sub("TV", data)])
+    assert hass.states.get(entity(hass, "s1_power")).state == "91.0"  # tv 80 + box standby 2 + unavailable 0 + camera 9 (idle uses its standby value 9)

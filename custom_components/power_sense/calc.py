@@ -17,26 +17,42 @@ def period_ids(ts: float, tz) -> dict[str, str]:
     return {"day": d.strftime("%Y-%m-%d"), "month": d.strftime("%Y-%m"), "year": d.strftime("%Y")}
 
 
+ON, STANDBY, OFF = "on", "standby", "off"
+ON_STATES = {"on", "playing", "paused", "buffering", "recording", "streaming", "open", "heat", "cool"}
+STANDBY_STATES = {"off", "standby", "idle"}
+
+
+def classify(state: str | None) -> str:
+    """Map an entity state to a power mode: on, standby or off (unavailable/unknown count as off = 0 W)."""
+    s = (state or "").lower()
+    return ON if s in ON_STATES else STANDBY if s in STANDBY_STATES else OFF
+
+
 def estimate_power(
-    states: Mapping[str, tuple[bool, float | None]],
-    watts: Mapping[str, float],
+    states: Mapping[str, tuple[str, float | None]],
+    watts: Mapping[str, float | Mapping[str, float]],
     default_watts: float,
     scale_brightness: bool,
     min_level: float = 0.1,
+    standby_watts: float = 0.0,
 ) -> float:
     """Estimated power of switched entities.
 
-    states: entity_id -> (is_on, brightness 0..255 or None). Entities that report a
+    states: entity_id -> (mode, brightness 0..255 or None) with mode from classify().
+    *watts* may give a number (power while on) or {"on": W, "standby": W} per entity. Entities that report a
     brightness are scaled by it (never below *min_level*) when *scale_brightness* is set.
     """
     total = 0.0
-    for entity_id, (is_on, brightness) in states.items():
-        if not is_on:
-            continue
-        w = watts.get(entity_id, default_watts)
-        if scale_brightness and brightness is not None:
-            w *= max(brightness / 255.0, min_level)
-        total += w
+    for entity_id, (mode, brightness) in states.items():
+        spec = watts.get(entity_id)
+        if isinstance(spec, Mapping):
+            on, standby = float(spec.get("on", default_watts)), float(spec.get("standby", standby_watts))
+        else:
+            on, standby = (default_watts if spec is None else float(spec)), standby_watts
+        if mode == ON:
+            total += on * (max(brightness / 255.0, min_level) if scale_brightness and brightness is not None else 1.0)
+        elif mode == STANDBY:
+            total += standby
     return total
 
 
@@ -107,20 +123,20 @@ class Meter:
 
 
 def power_timeline(
-    events: Iterable[tuple[float, str, bool, float | None]],
-    power_of: Callable[[Mapping[str, tuple[bool, float | None]]], float],
-    initial: Mapping[str, tuple[bool, float | None]] | None = None,
+    events: Iterable[tuple[float, str, str, float | None]],
+    power_of: Callable[[Mapping[str, tuple[str, float | None]]], float],
+    initial: Mapping[str, tuple[str, float | None]] | None = None,
 ) -> list[tuple[float, float]]:
     """Turn entity state events into (timestamp, estimated power) steps.
 
-    events: (ts, entity_id, is_on, brightness or None), brightness None keeps the last known one.
+    events: (ts, entity_id, mode, brightness or None), brightness None keeps the last known one.
     """
-    current: dict[str, tuple[bool, float | None]] = dict(initial or {})
+    current: dict[str, tuple[str, float | None]] = dict(initial or {})
     steps: list[tuple[float, float]] = []
-    for ts, entity_id, is_on, brightness in sorted(events, key=lambda e: e[0]):
+    for ts, entity_id, mode, brightness in sorted(events, key=lambda e: e[0]):
         if brightness is None:
-            brightness = current.get(entity_id, (False, None))[1]
-        current[entity_id] = (is_on, brightness)
+            brightness = current.get(entity_id, (OFF, None))[1]
+        current[entity_id] = (mode, brightness)
         steps.append((ts, power_of(current)))
     return steps
 

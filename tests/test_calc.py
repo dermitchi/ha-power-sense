@@ -18,7 +18,7 @@ def ts(y, mo, d, h=0, mi=0):
 
 
 def test_estimate_power_scales_with_brightness_and_min_level():
-    states = {"light.a": (True, 255), "light.b": (True, 51), "light.c": (True, 0), "light.d": (False, 255), "switch.e": (True, None)}
+    states = {"light.a": ("on", 255), "light.b": ("on", 51), "light.c": ("on", 0), "light.d": ("off", 255), "switch.e": ("on", None)}
     watts = {"light.a": 10, "light.b": 10, "light.c": 10, "light.d": 10}
     # a: 10, b: 2, c: min 10 % = 1, d off, e: default 5 W (no brightness)
     assert calc.estimate_power(states, watts, 5, True) == 10 + 2 + 1 + 5
@@ -52,7 +52,7 @@ def test_hourly_energy_splits_at_hour_boundaries():
 
 def test_power_timeline_carries_brightness():
     power = lambda s: calc.estimate_power(s, {}, 10, True)  # noqa: E731
-    ev = [(1, "light.a", True, 255), (2, "light.a", False, None), (3, "light.a", True, None)]
+    ev = [(1, "light.a", "on", 255), (2, "light.a", "off", None), (3, "light.a", "on", None)]
     assert calc.power_timeline(ev, power) == [(1, 10.0), (2, 0.0), (3, 10.0)]
 
 
@@ -76,3 +76,19 @@ def test_serialisation_roundtrip():
     m = calc.Meter(total=1.5, power=20.0, ts=5.0)
     assert calc.Meter.from_dict(m.as_dict()) == m
     assert calc.Meter.from_dict(None) == calc.Meter()
+
+
+def test_classify_maps_states_to_modes():
+    assert [calc.classify(s) for s in ("on", "playing", "paused", "recording", "off", "standby", "idle", "unavailable", None)] == [
+        "on", "on", "on", "on", "standby", "standby", "standby", "off", "off"]
+
+
+def test_standby_watts_and_per_entity_overrides():
+    states = {"media_player.tv": ("on", None), "media_player.box": ("standby", None), "media_player.gone": ("off", None),
+              "media_player.cam": ("standby", None), "media_player.x": ("standby", None)}
+    watts = {"media_player.tv": {"on": 80, "standby": 0.5}, "media_player.box": 10, "media_player.cam": {"on": 9, "standby": 9}}
+    # tv: 80 on, box: default standby 2, gone ("off" mode is standby too) 2, cam: standby override 9, x: 2
+    assert calc.estimate_power({k: v for k, v in states.items() if k != "media_player.gone"}, watts, 10, True, standby_watts=2) == 80 + 2 + 9 + 2
+    # an unavailable device counts as 0 W, a TV in standby uses its own standby value
+    assert calc.estimate_power({"media_player.tv": (calc.classify("unavailable"), None)}, watts, 10, True, standby_watts=2) == 0
+    assert calc.estimate_power({"media_player.tv": (calc.classify("off"), None)}, watts, 10, True, standby_watts=2) == 0.5

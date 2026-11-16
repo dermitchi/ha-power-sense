@@ -21,13 +21,21 @@ from homeassistant.helpers.storage import Store
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.util import dt as dt_util
 
-from .calc import Meter, estimate_power, hourly_energy, merge_hourly, power_timeline
+from .calc import (
+    Meter,
+    classify,
+    estimate_power,
+    hourly_energy,
+    merge_hourly,
+    power_timeline,
+)
 from .const import (
     CONF_DEFAULT_WATTS,
     CONF_ENTITIES,
     CONF_POWER_SENSORS,
     CONF_PRICE,
     CONF_SCALE_BRIGHTNESS,
+    CONF_STANDBY_WATTS,
     CONF_WATTS,
     DEFAULT_PRICE,
     DEFAULT_WATTS,
@@ -55,7 +63,8 @@ class DeviceTracker:
         self.entities: list[str] = list(d.get(CONF_ENTITIES, []))
         self.default_watts = float(d.get(CONF_DEFAULT_WATTS, DEFAULT_WATTS))
         self.scale = bool(d.get(CONF_SCALE_BRIGHTNESS, True))
-        self.watts: dict[str, float] = {k: float(v) for k, v in (d.get(CONF_WATTS) or {}).items()}
+        self.standby = float(d.get(CONF_STANDBY_WATTS, 0.0))
+        self.watts: dict[str, float | dict] = dict(d.get(CONF_WATTS) or {})
         self.signal_power = f"{DOMAIN}_power_{subentry.subentry_id}"
         self.signal_tick = f"{DOMAIN}_tick_{subentry.subentry_id}"
 
@@ -79,8 +88,8 @@ class DeviceTracker:
             states = {}
             for entity_id in self.entities:
                 state = hass.states.get(entity_id)
-                states[entity_id] = (state is not None and state.state == "on", state.attributes.get("brightness") if state else None)
-            total += estimate_power(states, self.watts, self.default_watts, self.scale, MIN_LEVEL)
+                states[entity_id] = (classify(state.state if state else None), state.attributes.get("brightness") if state else None)
+            total += estimate_power(states, self.watts, self.default_watts, self.scale, MIN_LEVEL, self.standby)
         return total
 
     def refresh(self) -> None:
@@ -186,8 +195,9 @@ class Manager:
                 events = []
                 for entity_id, states in history.items():
                     for s in states:
-                        events.append((max(s.last_updated.timestamp(), start), entity_id, s.state == "on", s.attributes.get("brightness")))
-                power_of = lambda current: estimate_power(current, tracker.watts, tracker.default_watts, tracker.scale, MIN_LEVEL)  # noqa: E731
+                        events.append((max(s.last_updated.timestamp(), start), entity_id, classify(s.state), s.attributes.get("brightness")))
+                power_of = lambda current: estimate_power(  # noqa: E731
+                    current, tracker.watts, tracker.default_watts, tracker.scale, MIN_LEVEL, tracker.standby)
                 series.append(hourly_energy(power_timeline(events, power_of), start, end))
 
             hourly_total = {t: v for t, v in merge_hourly(*series).items() if start <= t < end}

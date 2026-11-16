@@ -71,18 +71,20 @@
           "data": {
             "default_watts": "Default watts",
             "scale_brightness": "Scale with brightness",
-            "watts": "Watts per entity (optional)"
+            "watts": "Watts per entity (optional)",
+            "standby_watts": "Standby watts"
           },
           "data_description": {
             "default_watts": "Used for every entity without its own value below.",
             "scale_brightness": "Dimmed lights count proportionally (at least 10 %).",
-            "watts": "Own wattage per entity, e.g. light.desk: 9"
+            "watts": "Own wattage per entity, e.g. light.desk: 9. With standby: media_player.tv: {on: 80, standby: 0.5}",
+            "standby_watts": "Used while a device is switched off or in standby, e.g. a TV or streaming box. Use 0 for lamps."
           }
         }
       },
       "error": {
         "no_source": "Select at least one power sensor or one entity.",
-        "invalid_watts": "Use 'entity_id: watts' for entities you selected, watts must be 0 or more."
+        "invalid_watts": "Use 'entity_id: watts' (or on/standby) for selected entities; values must be 0 or more."
       },
       "abort": {
         "reconfigure_successful": "Device updated."

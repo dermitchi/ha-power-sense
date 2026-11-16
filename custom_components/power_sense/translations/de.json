@@ -71,18 +71,20 @@
           "data": {
             "default_watts": "Standard-Watt",
             "scale_brightness": "Mit Helligkeit skalieren",
-            "watts": "Watt pro Entität (optional)"
+            "watts": "Watt pro Entität (optional)",
+            "standby_watts": "Standby-Watt"
           },
           "data_description": {
             "default_watts": "Gilt für jede Entität ohne eigenen Wert unten.",
             "scale_brightness": "Gedimmte Lampen zählen anteilig (mindestens 10 %).",
-            "watts": "Eigene Leistung je Entität, z. B. light.schreibtisch: 9"
+            "watts": "Eigene Leistung je Entität, z. B. light.schreibtisch: 9. Mit Standby: media_player.tv: {on: 80, standby: 0.5}",
+            "standby_watts": "Gilt, solange ein Gerät aus oder im Standby ist, z. B. ein Fernseher oder eine Streaming-Box. Bei Lampen 0."
           }
         }
       },
       "error": {
         "no_source": "Wähle mindestens einen Leistungssensor oder eine Entität.",
-        "invalid_watts": "Nutze „entity_id: Watt“ für gewählte Entitäten, Watt muss 0 oder mehr sein."
+        "invalid_watts": "Nutze „entity_id: Watt“ (oder on/standby) für gewählte Entitäten, Werte müssen 0 oder mehr sein."
       },
       "abort": {
         "reconfigure_successful": "Gerät aktualisiert."
