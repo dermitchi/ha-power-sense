@@ -2,6 +2,7 @@
 
 DOMAIN = "power_sense"
 SUBENTRY_DEVICE = "device"
+SUBENTRY_BULK = "bulk"
 
 CONF_PRICE = "price"
 CONF_NAME = "name"

@@ -41,6 +41,8 @@ If you selected entities, the next step asks for:
 | Scale with brightness | Dimmed lights count proportionally, but at least 10 %. |
 | Watts per entity | Optional, own wattage per entity, as YAML: `light.desk: 9` |
 
+**Many plugs at once:** use *Add several measured devices*, tick all power sensors you want and every one becomes its own device (named after the device it belongs to; sensors already in use are skipped).
+
 You can change everything later with *⋮ → Reconfigure* on the device, and the price under *Configure* of the integration.
 
 **Typical wattages** (full brightness): LED bulb 5–10 W, LED spot 5–6 W, Hue Play 7 W, LED strip 10–25 W. The manufacturer's data sheet is the best source. Estimates are rough (±30 %) – the sensors are named like measured ones, so keep that in mind.

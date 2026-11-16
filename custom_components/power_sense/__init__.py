@@ -13,7 +13,10 @@ from homeassistant.core import Event, HomeAssistant, ServiceCall, callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.dispatcher import async_dispatcher_send
-from homeassistant.helpers.event import async_track_state_change_event, async_track_time_interval
+from homeassistant.helpers.event import (
+    async_track_state_change_event,
+    async_track_time_interval,
+)
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.util import dt as dt_util
@@ -144,7 +147,10 @@ class Manager:
         from homeassistant.components.recorder import get_instance
         from homeassistant.components.recorder.history import get_significant_states
         from homeassistant.components.recorder.models import StatisticMeanType
-        from homeassistant.components.recorder.statistics import async_import_statistics, statistics_during_period
+        from homeassistant.components.recorder.statistics import (
+            async_import_statistics,
+            statistics_during_period,
+        )
 
         recorder = get_instance(self.hass)
         tz = dt_util.get_default_time_zone()

@@ -87,6 +87,25 @@
       "abort": {
         "reconfigure_successful": "Gerät aktualisiert."
       }
+    },
+    "bulk": {
+      "entry_type": "Mehrere Geräte",
+      "initiate_flow": {
+        "user": "Mehrere Messgeräte hinzufügen"
+      },
+      "step": {
+        "user": {
+          "title": "Leistungssensoren wählen",
+          "description": "Jeder gewählte Sensor wird ein eigenes Gerät, benannt nach dem Gerät, zu dem er gehört. Schon verwendete Sensoren werden übersprungen. Umbenennen und Feinheiten später mit „Neu konfigurieren“.",
+          "data": {
+            "power_sensors": "Leistungssensoren"
+          }
+        }
+      },
+      "abort": {
+        "bulk_added": "{count} Geräte hinzugefügt.",
+        "nothing_new": "Alle gewählten Sensoren werden schon verwendet."
+      }
     }
   },
   "entity": {

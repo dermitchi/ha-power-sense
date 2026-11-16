@@ -7,7 +7,10 @@ from homeassistant.config_entries import ConfigSubentryData
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import entity_registry as er
-from pytest_homeassistant_custom_component.common import MockConfigEntry, async_fire_time_changed
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_fire_time_changed,
+)
 
 from custom_components.power_sense.const import DOMAIN
 
@@ -120,3 +123,17 @@ async def test_totals_survive_a_restart(hass: HomeAssistant, freezer) -> None:
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     assert hass.states.get(entity(hass, "s1_energy")).state == "0.1"
+
+
+async def test_bulk_add_creates_one_device_per_sensor_and_skips_used(hass: HomeAssistant) -> None:
+    hass.states.async_set("sensor.a_power", "5", {"unit_of_measurement": "W", "friendly_name": "Plug A"})
+    hass.states.async_set("sensor.b_power", "7", {"unit_of_measurement": "W", "friendly_name": "Plug B"})
+    entry = await setup_entry(hass, [sub("Existing", {"power_sensors": ["sensor.a_power"]})])
+    r = await hass.config_entries.subentries.async_init((entry.entry_id, "bulk"), context={"source": "user"})
+    r = await hass.config_entries.subentries.async_configure(r["flow_id"], {"power_sensors": ["sensor.a_power", "sensor.b_power"]})
+    assert r["type"] is FlowResultType.ABORT and r["reason"] == "bulk_added" and r["description_placeholders"] == {"count": "1"}
+    await hass.async_block_till_done()
+    assert sorted(s.title for s in entry.subentries.values()) == ["Existing", "Plug B"]
+    again = await hass.config_entries.subentries.async_init((entry.entry_id, "bulk"), context={"source": "user"})
+    again = await hass.config_entries.subentries.async_configure(again["flow_id"], {"power_sensors": ["sensor.a_power", "sensor.b_power"]})
+    assert again["reason"] == "nothing_new"

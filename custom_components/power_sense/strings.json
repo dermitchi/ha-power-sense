@@ -87,6 +87,25 @@
       "abort": {
         "reconfigure_successful": "Device updated."
       }
+    },
+    "bulk": {
+      "entry_type": "Several devices",
+      "initiate_flow": {
+        "user": "Add several measured devices"
+      },
+      "step": {
+        "user": {
+          "title": "Pick power sensors",
+          "description": "Every sensor you select becomes its own device, named after the device it belongs to. Sensors that are already used are skipped. Rename or refine a device later with Reconfigure.",
+          "data": {
+            "power_sensors": "Power sensors"
+          }
+        }
+      },
+      "abort": {
+        "bulk_added": "{count} devices added.",
+        "nothing_new": "All selected sensors are already in use."
+      }
     }
   },
   "entity": {
